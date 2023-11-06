@@ -112,7 +112,6 @@ app.get("/api/allJobPost", async (req, res) => {
   const title = req.query.title;
   const sortField = req.query.sortField;
   const sortOrder = req.query.sortOrder;
-  console.log(title);
 
   //   Pagination
   const page = parseInt(req.query.page);
@@ -146,7 +145,24 @@ app.get("/api/details/:id", async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
   const result = await jobPostCollection.findOne(query);
-  console.log(result);
+  res.send(result);
+});
+
+// Update Applications Number
+app.patch("/api/details/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const options = { upsert: true };
+  const updatedPost = {
+    $inc: {
+      JobApplicantsNumber: 1,
+    },
+  };
+  const result = await jobPostCollection.updateOne(
+    filter,
+    updatedPost,
+    options
+  );
   res.send(result);
 });
 
