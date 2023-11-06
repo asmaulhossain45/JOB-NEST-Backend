@@ -54,6 +54,7 @@ const client = new MongoClient(uri, {
 
 // ===== Collection List =====
 const jobPostCollection = client.db("JobNest").collection("JobPosts");
+const applicationCollection = client.db("JobNest").collection("Applications");
 
 async function run() {
   try {
@@ -135,8 +136,8 @@ app.get("/api/allJobPost", async (req, res) => {
       .toArray();
     const jobPostCount = await jobPostCollection.countDocuments();
     res.send({ jobPostCount, result });
-  } catch (error) {
-    res.status(500).send("Internal Server Error: " + error.message);
+  } catch {
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -144,26 +145,50 @@ app.get("/api/allJobPost", async (req, res) => {
 app.get("/api/details/:id", async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
-  const result = await jobPostCollection.findOne(query);
-  res.send(result);
+  try {
+    const result = await jobPostCollection.findOne(query);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Get All Applications Post
+app.get("/api/applications", async (req, res) => {
+  try {
+    const result = await applicationCollection.find().toArray();
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Post Application
+app.post("/api/application", async (req, res) => {
+  const Info = req.body;
+  try {
+    const result = await applicationCollection.insertOne(Info);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 // Update Applications Number
 app.patch("/api/details/:id", async (req, res) => {
   const id = req.params.id;
   const filter = { _id: new ObjectId(id) };
-  const options = { upsert: true };
   const updatedPost = {
     $inc: {
       JobApplicantsNumber: 1,
     },
   };
-  const result = await jobPostCollection.updateOne(
-    filter,
-    updatedPost,
-    options
-  );
-  res.send(result);
+  try {
+    const result = await jobPostCollection.updateOne(filter, updatedPost);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 // ===== Server Testing =====
