@@ -89,43 +89,39 @@ app.post("/api/jwt", async (req, res) => {
     .send({ success: true });
 });
 
-// ===== Load jobPost for Home Tab =====
-app.get("/api/homeTab", async (req, res) => {
-  let queryObj = {};
-  const category = req.query.category;
-  if (category) {
-    queryObj.category = category;
-  }
-
-  try {
-    const result = await jobPostCollection.find(queryObj).toArray();
-    res.send(result);
-  } catch (error) {
-    res.status(500).send("Internal Server Error: " + error.message);
-  }
-});
-
 // ===== Load All jobPost =====
 app.get("/api/allJobPost", async (req, res) => {
   let queryObj = {};
   let sortObj = {};
 
   const title = req.query.title;
+  const email = req.query.email;
+  const category = req.query.category;
   const sortField = req.query.sortField;
   const sortOrder = req.query.sortOrder;
 
-  //   Pagination
-  const page = parseInt(req.query.page);
-  const limit = parseInt(req.query.limit);
-  const skip = (page - 1) * limit;
+  // filter For HomeTab
+  if (category) {
+    queryObj.category = category;
+  }
 
+  // Filter For All Jobs
   if (title) {
     queryObj.title = title;
+  }
+  // filter For My Jobs
+  if (email) {
+    queryObj.email = email;
   }
 
   if (sortField && sortOrder) {
     sortObj[sortField] = sortOrder;
   }
+
+  //   Pagination
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+  const skip = (page - 1) * limit;
 
   try {
     const result = await jobPostCollection
@@ -134,7 +130,7 @@ app.get("/api/allJobPost", async (req, res) => {
       .limit(limit)
       .sort(sortObj)
       .toArray();
-    const jobPostCount = await jobPostCollection.countDocuments();
+    const jobPostCount = await jobPostCollection.countDocuments(queryObj);
     res.send({ jobPostCount, result });
   } catch {
     res.status(500).send("Internal Server Error");
@@ -147,6 +143,23 @@ app.get("/api/details/:id", async (req, res) => {
   const query = { _id: new ObjectId(id) };
   try {
     const result = await jobPostCollection.findOne(query);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Update Applications Number
+app.patch("/api/details/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const updatedPost = {
+    $inc: {
+      JobApplicantsNumber: 1,
+    },
+  };
+  try {
+    const result = await jobPostCollection.updateOne(filter, updatedPost);
     res.send(result);
   } catch {
     res.status(500).send("Internal Server Error");
@@ -174,22 +187,6 @@ app.post("/api/applications", async (req, res) => {
   }
 });
 
-// Update Applications Number
-app.patch("/api/details/:id", async (req, res) => {
-  const id = req.params.id;
-  const filter = { _id: new ObjectId(id) };
-  const updatedPost = {
-    $inc: {
-      JobApplicantsNumber: 1,
-    },
-  };
-  try {
-    const result = await jobPostCollection.updateOne(filter, updatedPost);
-    res.send(result);
-  } catch {
-    res.status(500).send("Internal Server Error");
-  }
-});
 
 // ===== Server Testing =====
 app.get("/", (req, res) => {
