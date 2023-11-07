@@ -120,7 +120,7 @@ app.get("/api/allJobPost", async (req, res) => {
   }
   // filter For My Jobs
   if (email) {
-    queryObj.companyEmail = email;
+    queryObj.email = email;
   }
 
   if (sortField && sortOrder) {
@@ -215,6 +215,18 @@ app.patch("/api/update-post/:id", async (req, res) => {
   };
   try {
     const result = await jobPostCollection.updateOne(filter, updatedInfo);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Delete Post
+app.delete("/api/update-post/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await jobPostCollection.deleteOne(query);
     res.send(result);
   } catch {
     res.status(500).send("Internal Server Error");
