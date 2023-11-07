@@ -164,7 +164,7 @@ app.get("/api/applications", async (req, res) => {
 });
 
 // Post Application
-app.post("/api/application", async (req, res) => {
+app.post("/api/applications", async (req, res) => {
   const Info = req.body;
   try {
     const result = await applicationCollection.insertOne(Info);
