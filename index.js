@@ -92,7 +92,6 @@ app.post("/api/jwt", async (req, res) => {
 // Post Job Post
 app.post("/api/allJobPost", async (req, res) => {
   const postData = req.body;
-  console.log(postData);
   const result = await jobPostCollection.insertOne(postData);
   console.log(result);
   res.send(result);
@@ -120,7 +119,7 @@ app.get("/api/allJobPost", async (req, res) => {
   }
   // filter For My Jobs
   if (email) {
-    queryObj.email = email;
+    queryObj.companyEmail = email;
   }
 
   if (sortField && sortOrder) {
@@ -148,9 +147,9 @@ app.get("/api/allJobPost", async (req, res) => {
 
 // view Details
 app.get("/api/details/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
   try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
     const result = await jobPostCollection.findOne(query);
     res.send(result);
   } catch {
@@ -160,14 +159,14 @@ app.get("/api/details/:id", async (req, res) => {
 
 // Update Applications Number
 app.patch("/api/details/:id", async (req, res) => {
-  const id = req.params.id;
-  const filter = { _id: new ObjectId(id) };
-  const updatedPost = {
-    $inc: {
-      JobApplicantsNumber: 1,
-    },
-  };
   try {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updatedPost = {
+      $inc: {
+        JobApplicantsNumber: 1,
+      },
+    };
     const result = await jobPostCollection.updateOne(filter, updatedPost);
     res.send(result);
   } catch {
@@ -177,9 +176,9 @@ app.patch("/api/details/:id", async (req, res) => {
 
 // get Data for Update Post
 app.get("/api/update-post/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
   try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
     const result = await jobPostCollection.findOne(query);
     res.send(result);
   } catch {
@@ -189,31 +188,31 @@ app.get("/api/update-post/:id", async (req, res) => {
 
 // Update Post
 app.patch("/api/update-post/:id", async (req, res) => {
-  const id = req.params.id;
-  const rcvData = req.body;
-  const filter = { _id: new ObjectId(id) };
-  const updatedInfo = {
-    $set: {
-      title: rcvData.title,
-      ceoName: rcvData.ceoName,
-      companyEmail: rcvData.companyEmail,
-      companyName: rcvData.companyName,
-      companySite: rcvData.companySite,
-      location: rcvData.location,
-      companyLogo: rcvData.companyLogo,
-      category: rcvData.category,
-      gender: rcvData.gender,
-      bannerURL: rcvData.bannerURL,
-      postDate: rcvData.postDate,
-      deadline: rcvData.deadline,
-      age: rcvData.age,
-      salary: rcvData.salary,
-      experience: rcvData.experience,
-      education: rcvData.education,
-      description: rcvData.description,
-    },
-  };
   try {
+    const id = req.params.id;
+    const rcvData = req.body;
+    const filter = { _id: new ObjectId(id) };
+    const updatedInfo = {
+      $set: {
+        title: rcvData.title,
+        ceoName: rcvData.ceoName,
+        companyEmail: rcvData.companyEmail,
+        companyName: rcvData.companyName,
+        companySite: rcvData.companySite,
+        location: rcvData.location,
+        companyLogo: rcvData.companyLogo,
+        category: rcvData.category,
+        gender: rcvData.gender,
+        bannerURL: rcvData.bannerURL,
+        postDate: rcvData.postDate,
+        deadline: rcvData.deadline,
+        age: rcvData.age,
+        salary: rcvData.salary,
+        experience: rcvData.experience,
+        education: rcvData.education,
+        description: rcvData.description,
+      },
+    };
     const result = await jobPostCollection.updateOne(filter, updatedInfo);
     res.send(result);
   } catch {
@@ -233,21 +232,34 @@ app.delete("/api/update-post/:id", async (req, res) => {
   }
 });
 
-// Get All Applications Post
-app.get("/api/applications", async (req, res) => {
+// Post Application
+app.post("/api/applications", async (req, res) => {
   try {
-    const result = await applicationCollection.find().toArray();
+    const Info = req.body;
+    const result = await applicationCollection.insertOne(Info);
     res.send(result);
   } catch {
     res.status(500).send("Internal Server Error");
   }
 });
 
-// Post Application
-app.post("/api/applications", async (req, res) => {
-  const Info = req.body;
+// ===== Load Application Data By Email =====
+app.get("/api/applications", async (req, res) => {
+  let queryObj = {};
+  const email = req.query.email;
+  const category = req.query.category;
+  console.log(email, category);
+
+  // filter Application
+  if (email) {
+    queryObj.applicantEmail = email;
+  }
+  if (category) {
+    queryObj.category = category;
+  }
+
   try {
-    const result = await applicationCollection.insertOne(Info);
+    const result = await applicationCollection.find(queryObj).toArray();
     res.send(result);
   } catch {
     res.status(500).send("Internal Server Error");
