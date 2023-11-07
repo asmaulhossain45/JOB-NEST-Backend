@@ -89,6 +89,15 @@ app.post("/api/jwt", async (req, res) => {
     .send({ success: true });
 });
 
+// Post Job Post
+app.post("/api/allJobPost", async (req, res) => {
+  const postData = req.body;
+  console.log(postData);
+  const result = await jobPostCollection.insertOne(postData);
+  console.log(result);
+  res.send(result);
+});
+
 // ===== Load All jobPost =====
 app.get("/api/allJobPost", async (req, res) => {
   let queryObj = {};
@@ -166,6 +175,35 @@ app.patch("/api/details/:id", async (req, res) => {
   }
 });
 
+// get Data for Update Post
+app.get("/api/update-post/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  try {
+    const result = await jobPostCollection.findOne(query);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Update Post
+app.patch("/api/update-post/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const updatedPost = {
+    $inc: {
+      JobApplicantsNumber: 1,
+    },
+  };
+  try {
+    const result = await jobPostCollection.updateOne(filter, updatedPost);
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // Get All Applications Post
 app.get("/api/applications", async (req, res) => {
   try {
@@ -186,7 +224,6 @@ app.post("/api/applications", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 // ===== Server Testing =====
 app.get("/", (req, res) => {
