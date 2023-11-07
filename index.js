@@ -120,7 +120,7 @@ app.get("/api/allJobPost", async (req, res) => {
   }
   // filter For My Jobs
   if (email) {
-    queryObj.email = email;
+    queryObj.companyEmail = email;
   }
 
   if (sortField && sortOrder) {
@@ -190,14 +190,31 @@ app.get("/api/update-post/:id", async (req, res) => {
 // Update Post
 app.patch("/api/update-post/:id", async (req, res) => {
   const id = req.params.id;
+  const rcvData = req.body;
   const filter = { _id: new ObjectId(id) };
-  const updatedPost = {
-    $inc: {
-      JobApplicantsNumber: 1,
+  const updatedInfo = {
+    $set: {
+      title: rcvData.title,
+      ceoName: rcvData.ceoName,
+      companyEmail: rcvData.companyEmail,
+      companyName: rcvData.companyName,
+      companySite: rcvData.companySite,
+      location: rcvData.location,
+      companyLogo: rcvData.companyLogo,
+      category: rcvData.category,
+      gender: rcvData.gender,
+      bannerURL: rcvData.bannerURL,
+      postDate: rcvData.postDate,
+      deadline: rcvData.deadline,
+      age: rcvData.age,
+      salary: rcvData.salary,
+      experience: rcvData.experience,
+      education: rcvData.education,
+      description: rcvData.description,
     },
   };
   try {
-    const result = await jobPostCollection.updateOne(filter, updatedPost);
+    const result = await jobPostCollection.updateOne(filter, updatedInfo);
     res.send(result);
   } catch {
     res.status(500).send("Internal Server Error");
