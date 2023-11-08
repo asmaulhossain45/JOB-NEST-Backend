@@ -9,7 +9,10 @@ const cookieParser = require("cookie-parser");
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://job-nest-asmaul.web.app",
+      "https://job-nest-asmaul.firebaseapp.com"
+    ],
     credentials: true,
   })
 );
