@@ -27,7 +27,7 @@ const verifyToken = async (req, res, next) => {
   if (!token) {
     return res.status(401).send({ message: "forbidden" });
   }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_TOKEN, (err, decoded) => {
     // Error
     if (err) {
       console.log(err);
@@ -77,11 +77,11 @@ run().catch(console.dir);
 app.post("/api/jwt", async (req, res) => {
   const user = req.body;
   console.log(user);
-  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+  const token = jwt.sign(user, process.env.JWT_TOKEN, {
     expiresIn: "1h",
   });
   res
-    .cookie("Access token", token, {
+    .cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
@@ -116,10 +116,6 @@ app.get("/api/allJobPost", async (req, res) => {
   // Filter For All Jobs
   if (title) {
     queryObj.title = title;
-  }
-  // filter For My Jobs
-  if (email) {
-    queryObj.companyEmail = email;
   }
 
   if (sortField && sortOrder) {
@@ -244,7 +240,31 @@ app.post("/api/applications", async (req, res) => {
 });
 
 // ===== Load Application Data By Email =====
-app.get("/api/applications", async (req, res) => {
+app.get("/api/my-job", verifyToken, async (req, res) => {
+  let queryObj = {};
+  const email = req.query.email;
+  if (email !== req.user.email) {
+    return res.status(403).send({ message: "Forbidden Access" });
+  }
+
+  // filter Application
+  if (email) {
+    queryObj.companyEmail = email;
+  }
+
+  try {
+    const result = await jobPostCollection.find(queryObj).toArray();
+    res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ===== Load Application Data By Email =====
+app.get("/api/applications", verifyToken, async (req, res) => {
+  if (req.query.email !== req.user.email) {
+    return res.status(403).send({ message: "Forbidden Access" });
+  }
   let queryObj = {};
   const email = req.query.email;
   const category = req.query.category;
@@ -261,6 +281,15 @@ app.get("/api/applications", async (req, res) => {
   try {
     const result = await applicationCollection.find(queryObj).toArray();
     res.send(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Delete Cookies
+app.post("/api/clear", async (req, res) => {
+  try {
+    res.clearCookie("token", { maxAge: 0 }).send({ success: true });
   } catch {
     res.status(500).send("Internal Server Error");
   }
